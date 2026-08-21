@@ -3,12 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- कैश को रोकने वाले टैग्स -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>Ultimate Live Tracker Dashboard</title>
+    <title>लोकेशन खोजी - लाइव डैशबोर्ड</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
@@ -19,8 +18,8 @@
         .info-group { display: flex; justify-content: space-between; gap: 5px; flex-wrap: wrap; }
         .info-box { background: #0f172a; padding: 6px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid #334155; flex: 1; text-align: center; }
         .control-bar { background: #334155; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-        .control-bar input { padding: 4px; width: 60px; text-align: center; border-radius: 4px; border: none; }
-        .control-bar button { background: #38bdf8; border: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .control-bar input { padding: 4px; width: 60px; text-align: center; border-radius: 4px; border: none; font-weight: bold; }
+        .control-bar button { background: #38bdf8; color: #0f172a; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .alert-banner { padding: 8px; text-align: center; font-weight: bold; font-size: 13px; }
         .safe { background: #065f46; color: #4ade80; }
         .danger { background: #991b1b; color: #f87171; }
@@ -30,7 +29,7 @@
 <body>
 
     <div class="dashboard-header">
-        <h2 class="dash-title">🛡️ लोकेशन खोजी - लाइव</h2>
+        <h2 class="dash-title">🛡️ लोकेशन खोजी - लाइव डैशबोर्ड</h2>
         <div class="info-group">
             <div class="info-box" id="latLonBox">📍 लोड हो रहा...</div>
             <div class="info-box" id="battBox">🔋 --%</div>
@@ -40,12 +39,12 @@
     </div>
 
     <div class="control-bar">
-        <span>⚙️ दायरा (मीटर):</span>
+        <span>🎯 सुरक्षित दायरा (मीटर):</span>
         <input type="number" id="radiusInput" value="500">
         <button id="updateRadiusBtn">अपडेट करें</button>
     </div>
 
-    <div id="alertBox" class="alert-banner safe">✅ डेटा का इंतज़ार...</div>
+    <div id="alertBox" class="alert-banner safe">✅ लाइव डेटा की प्रतीक्षा है...</div>
     <div id="map"></div>
 
     <script type="module">
@@ -65,6 +64,7 @@
             if(val > 0) safeCircle.setRadius(val);
         };
 
+        // रियल-टाइम डेटा लिसनर
         onValue(ref(db, 'childData/location'), (snap) => {
             const data = snap.val();
             if (data) {
@@ -72,16 +72,19 @@
                 document.getElementById('latLonBox').innerHTML = `📍 ${data.latitude.toFixed(3)}, ${data.longitude.toFixed(3)}`;
                 document.getElementById('battBox').innerHTML = `🔋 ${data.battery}%`;
                 document.getElementById('spdBox').innerHTML = `🚀 ${data.speed} km/h`;
-                document.getElementById('timeBox').innerHTML = `⏱️ ${new Date(data.timestamp).toLocaleTimeString()}`;
+                
+                // बिल्कुल सटीक समय दिखाने के लिए
+                const dateObj = new Date(data.timestamp);
+                document.getElementById('timeBox').innerHTML = `⏱️ ${dateObj.toLocaleTimeString()}`;
 
                 const dist = map.distance([data.latitude, data.longitude], safeCircle.getLatLng());
                 const alertDiv = document.getElementById('alertBox');
                 if (dist > safeCircle.getRadius()) {
                     alertDiv.className = "alert-banner danger";
-                    alertDiv.innerHTML = `⚠️ बाहर हैं! (${Math.round(dist)}m)`;
+                    alertDiv.innerHTML = `⚠️ चेतावनी: बच्चा दायरे से बाहर है! (${Math.round(dist)}m)`;
                 } else {
                     alertDiv.className = "alert-banner safe";
-                    alertDiv.innerHTML = `✅ सुरक्षित (दायरे में)`;
+                    alertDiv.innerHTML = `✅ सुरक्षित (निर्धारित दायरे के अंदर)`;
                 }
             }
         });
