@@ -18,7 +18,7 @@
         .info-group { display: flex; justify-content: space-between; gap: 5px; flex-wrap: wrap; }
         .info-box { background: #0f172a; padding: 6px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid #334155; flex: 1; text-align: center; }
         .control-bar { background: #334155; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-        .control-bar input { padding: 4px; width: 60px; text-align: center; border-radius: 4px; border: none; font-weight: bold; }
+        .control-bar input { padding: 4px; width: 70px; text-align: center; border-radius: 4px; border: none; font-weight: bold; }
         .control-bar button { background: #38bdf8; color: #0f172a; border: none; padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .alert-banner { padding: 8px; text-align: center; font-weight: bold; font-size: 13px; }
         .safe { background: #065f46; color: #4ade80; }
@@ -40,7 +40,8 @@
 
     <div class="control-bar">
         <span>🎯 सुरक्षित दायरा (मीटर):</span>
-        <input type="number" id="radiusInput" value="500">
+        <!-- यहाँ हमने डिफ़ॉल्ट वैल्यू 1000 मीटर (1 किमी) कर दी है, पैरेंट्स इसे 2000 या अपनी मर्जी से कुछ भी लिख सकते हैं -->
+        <input type="number" id="radiusInput" value="1000" step="100" min="100">
         <button id="updateRadiusBtn">अपडेट करें</button>
     </div>
 
@@ -53,18 +54,20 @@
 
         const db = getDatabase(initializeApp({ databaseURL: "https://location-khoji-default-rtdb.firebaseio.com/" }));
         
-        const map = L.map('map').setView([28.896, 76.554], 16);
+        const map = L.map('map').setView([28.896, 76.554], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        let safeCircle = L.circle([28.896, 76.554], { radius: 500, color: '#38bdf8', fillOpacity: 0.2, draggable: true }).addTo(map);
+        // शुरुआत में 1000 मीटर (1 किमी) का दायरा सेट किया है
+        let safeCircle = L.circle([28.896, 76.554], { radius: 1000, color: '#38bdf8', fillOpacity: 0.2, draggable: true }).addTo(map);
         const marker = L.marker([28.896, 76.554]).addTo(map);
 
         document.getElementById('updateRadiusBtn').onclick = () => {
             const val = parseInt(document.getElementById('radiusInput').value);
-            if(val > 0) safeCircle.setRadius(val);
+            if(val > 0) {
+                safeCircle.setRadius(val); // पैरेंट्स जो भी मीटर डालेंगे (जैसे 2000), दायरा उतना बड़ा हो जाएगा
+            }
         };
 
-        // रियल-टाइम डेटा लिसनर
         onValue(ref(db, 'childData/location'), (snap) => {
             const data = snap.val();
             if (data) {
@@ -73,7 +76,6 @@
                 document.getElementById('battBox').innerHTML = `🔋 ${data.battery}%`;
                 document.getElementById('spdBox').innerHTML = `🚀 ${data.speed} km/h`;
                 
-                // बिल्कुल सटीक समय दिखाने के लिए
                 const dateObj = new Date(data.timestamp);
                 document.getElementById('timeBox').innerHTML = `⏱️ ${dateObj.toLocaleTimeString()}`;
 
