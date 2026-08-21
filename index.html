@@ -2,87 +2,50 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Ultimate Live Tracker Dashboard with Custom Safe Zone</title>
-    <!-- Leaflet CSS & JS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- कैश को रोकने वाले टैग्स -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <title>Ultimate Live Tracker Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #0f172a; color: #f8fafc; }
-        
-        /* ऊपर का शानदार डैशबोर्ड */
-        .dashboard-header {
-            background: #1e293b;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            border-bottom: 3px solid #38bdf8;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .dash-title { font-size: 18px; font-weight: bold; color: #38bdf8; margin: 0; }
-        .info-group { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
-        .info-box { background: #0f172a; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid #334155; }
-        
-        /* सेफ जोन कस्टमाइज़र बार */
-        .control-bar {
-            background: #334155;
-            padding: 8px 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .control-bar input {
-            padding: 5px 10px;
-            border-radius: 6px;
-            border: none;
-            width: 100px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .control-bar button {
-            background: #38bdf8;
-            color: #0f172a;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* अलर्ट बैनर */
-        .alert-banner { padding: 8px; text-align: center; font-weight: bold; font-size: 14px; }
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; margin: 0; padding: 0; background: #0f172a; color: white; }
+        .dashboard-header { background: #1e293b; padding: 10px; border-bottom: 3px solid #38bdf8; }
+        .dash-title { font-size: 16px; font-weight: bold; color: #38bdf8; text-align: center; margin: 0 0 8px 0; }
+        .info-group { display: flex; justify-content: space-between; gap: 5px; flex-wrap: wrap; }
+        .info-box { background: #0f172a; padding: 6px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid #334155; flex: 1; text-align: center; }
+        .control-bar { background: #334155; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .control-bar input { padding: 4px; width: 60px; text-align: center; border-radius: 4px; border: none; }
+        .control-bar button { background: #38bdf8; border: none; padding: 4px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .alert-banner { padding: 8px; text-align: center; font-weight: bold; font-size: 13px; }
         .safe { background: #065f46; color: #4ade80; }
         .danger { background: #991b1b; color: #f87171; }
-
-        /* बड़ा और फुल स्क्रीन मैप */
-        #map { height: calc(100vh - 145px); width: 100%; }
+        #map { height: calc(100vh - 140px); width: 100%; }
     </style>
 </head>
 <body>
 
-    <!-- डैशबोर्ड हेडर (सारे आंकड़े यहाँ दिखेंगे) -->
     <div class="dashboard-header">
-        <h2 class="dash-title">🛡️ लोकेशन खोजी - लाइव डैशबोर्ड</h2>
+        <h2 class="dash-title">🛡️ लोकेशन खोजी - लाइव</h2>
         <div class="info-group">
-            <div class="info-box" id="latLonBox">📍 Lat/Lon: लोड हो रहा है...</div>
-            <div class="info-box" id="battBox">🔋 बैटरी: --%</div>
-            <div class="info-box" id="spdBox">🚀 स्पीड: -- km/h</div>
-            <div class="info-box" id="timeBox">⏱️ समय: --</div>
+            <div class="info-box" id="latLonBox">📍 लोड हो रहा...</div>
+            <div class="info-box" id="battBox">🔋 --%</div>
+            <div class="info-box" id="spdBox">🚀 -- km/h</div>
+            <div class="info-box" id="timeBox">⏱️ --</div>
         </div>
     </div>
 
-    <!-- पेरेंट्स अपनी मर्जी से दायरा बदलने का विकल्प -->
     <div class="control-bar">
-        <span>⚙️ सेफ जोन का दायरे (मीटर में सेट करें):</span>
-        <input type="number" id="radiusInput" value="500" step="50" min="50">
-        <button id="updateRadiusBtn">दायरे को अपडेट करें</button>
+        <span>⚙️ दायरा (मीटर):</span>
+        <input type="number" id="radiusInput" value="500">
+        <button id="updateRadiusBtn">अपडेट करें</button>
     </div>
 
-    <div id="alertBox" class="alert-banner safe">✅ सेफ जोन के अंदर हैं</div>
+    <div id="alertBox" class="alert-banner safe">✅ डेटा का इंतज़ार...</div>
     <div id="map"></div>
 
     <script type="module">
@@ -90,82 +53,36 @@
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const db = getDatabase(initializeApp({ databaseURL: "https://location-khoji-default-rtdb.firebaseio.com/" }));
+        
+        const map = L.map('map').setView([28.896, 76.554], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // मैप सेटअप और बड़ा डिसप्ले
-        const defaultCoord = [28.89609, 76.55428];
-        const map = L.map('map').setView(defaultCoord, 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        let safeCircle = L.circle([28.896, 76.554], { radius: 500, color: '#38bdf8', fillOpacity: 0.2, draggable: true }).addTo(map);
+        const marker = L.marker([28.896, 76.554]).addTo(map);
 
-        // सेफ जोन का घेरा (शुरुआत में 500 मीटर, जिसे माउस से भी खिसका सकते हैं)
-        let safeCircle = L.circle(defaultCoord, { 
-            radius: 500, 
-            color: '#38bdf8', 
-            fillColor: '#38bdf8', 
-            fillOpacity: 0.2,
-            draggable: true 
-        }).addTo(map);
+        document.getElementById('updateRadiusBtn').onclick = () => {
+            const val = parseInt(document.getElementById('radiusInput').value);
+            if(val > 0) safeCircle.setRadius(val);
+        };
 
-        const marker = L.marker(defaultCoord).addTo(map);
-        let isInitialZoom = true;
-        let currentData = null;
-
-        // पेरेंट्स द्वारा इनपुट बदलने पर दायरा अपडेट करने का फंक्शन
-        document.getElementById('updateRadiusBtn').addEventListener('click', () => {
-            const userVal = parseInt(document.getElementById('radiusInput').value);
-            if(userVal && userVal > 0) {
-                safeCircle.setRadius(userVal);
-                alert("सेफ जोन का दायरा बदलकर " + userVal + " मीटर कर दिया गया है!");
-                checkFenceAndDisplay();
-            } else {
-                alert("कृपया सही संख्या दर्ज करें!");
-            }
-        });
-
-        // फेंस चेक करने का कॉमन फंक्शन
-        function checkFenceAndDisplay() {
-            if (!currentData) return;
-            const lat = currentData.latitude;
-            const lon = currentData.longitude;
-            const batt = currentData.battery || 0;
-            const spd = currentData.speed || 0;
-            const timeStr = currentData.timestamp ? new Date(currentData.timestamp).toLocaleTimeString() : 'अभी-अभी';
-
-            const pos = [lat, lon];
-            marker.setLatLng(pos);
-
-            if (isInitialZoom) {
-                map.setView(pos, 16);
-                isInitialZoom = false;
-            }
-
-            // सारे आंकड़े ऊपर हेडर में अपडेट करना
-            document.getElementById('latLonBox').innerHTML = `📍 Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
-            document.getElementById('battBox').innerHTML = `🔋 बैटरी: ${batt}%`;
-            document.getElementById('spdBox').innerHTML = `🚀 स्पीड: ${spd} km/h`;
-            document.getElementById('timeBox').innerHTML = `⏱️ समय: ${timeStr}`;
-
-            // जियो-फेंसिंग दूरी की जाँच
-            const distance = map.distance(pos, safeCircle.getLatLng());
-            const radius = safeCircle.getRadius();
-            const alertDiv = document.getElementById('alertBox');
-
-            if (distance > radius) {
-                alertDiv.className = "alert-banner danger";
-                alertDiv.innerHTML = `⚠️ चेतावनी! सेफ जोन से बाहर हैं (दूरी: ${Math.round(distance)} मीटर, तय सीमा: ${radius} मीटर)`;
-            } else {
-                alertDiv.className = "alert-banner safe";
-                alertDiv.innerHTML = `✅ सुरक्षित जोन के अंदर हैं (दायरे के भीतर)`;
-            }
-        }
-
-        // Firebase से लाइव डेटा सुनना
-        onValue(ref(db, 'childData/location'), (snapshot) => {
-            const data = snapshot.val();
+        onValue(ref(db, 'childData/location'), (snap) => {
+            const data = snap.val();
             if (data) {
-                currentData = data;
-                checkFenceAndDisplay();
+                marker.setLatLng([data.latitude, data.longitude]);
+                document.getElementById('latLonBox').innerHTML = `📍 ${data.latitude.toFixed(3)}, ${data.longitude.toFixed(3)}`;
+                document.getElementById('battBox').innerHTML = `🔋 ${data.battery}%`;
+                document.getElementById('spdBox').innerHTML = `🚀 ${data.speed} km/h`;
+                document.getElementById('timeBox').innerHTML = `⏱️ ${new Date(data.timestamp).toLocaleTimeString()}`;
+
+                const dist = map.distance([data.latitude, data.longitude], safeCircle.getLatLng());
+                const alertDiv = document.getElementById('alertBox');
+                if (dist > safeCircle.getRadius()) {
+                    alertDiv.className = "alert-banner danger";
+                    alertDiv.innerHTML = `⚠️ बाहर हैं! (${Math.round(dist)}m)`;
+                } else {
+                    alertDiv.className = "alert-banner safe";
+                    alertDiv.innerHTML = `✅ सुरक्षित (दायरे में)`;
+                }
             }
         });
     </script>
